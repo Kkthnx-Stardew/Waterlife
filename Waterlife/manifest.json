@@ -1,0 +1,9 @@
+{
+  "Name": "Waterlife",
+  "Author": "Kkthnx",
+  "Version": "1.0.0",
+  "Description": "Shows the fish, junk and treasure you can catch in the water around you.",
+  "UniqueID": "Kkthnx.Waterlife",
+  "EntryDll": "Waterlife.dll",
+  "MinimumApiVersion": "4.0.0"
+}

@@ -1,0 +1,69 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The assembly name must match the manifest's EntryDll. -->
+    <AssemblyName>Waterlife</AssemblyName>
+    <RootNamespace>Waterlife</RootNamespace>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>10.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Version>1.0.0</Version>
+    <DebugType>portable</DebugType>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- Path to the game install. Override to build on another machine: dotnet build -p:GamePath="C:\...\Stardew Valley" -->
+  <PropertyGroup>
+    <GamePath Condition="'$(GamePath)' == ''">D:\SteamLibrary\steamapps\common\Stardew Valley</GamePath>
+    <ModsPath Condition="'$(ModsPath)' == ''">$(GamePath)\Mods\Waterlife</ModsPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Stardew Valley">
+      <HintPath>$(GamePath)\Stardew Valley.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="StardewModdingAPI">
+      <HintPath>$(GamePath)\StardewModdingAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="StardewValley.GameData">
+      <HintPath>$(GamePath)\StardewValley.GameData.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="MonoGame.Framework">
+      <HintPath>$(GamePath)\MonoGame.Framework.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="xTile">
+      <HintPath>$(GamePath)\xTile.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SMAPI.Toolkit.CoreInterfaces">
+      <HintPath>$(GamePath)\smapi-internal\SMAPI.Toolkit.CoreInterfaces.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(GamePath)\smapi-internal\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="manifest.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="assets\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets" />
+  </ItemGroup>
+
+  <!-- Optional: dotnet build -p:DeployToMods=true copies the built mod over the installed one. -->
+  <Target Name="DeployToMods" AfterTargets="Build" Condition="'$(DeployToMods)' == 'true'">
+    <ItemGroup>
+      <DeployRootFiles Include="$(TargetPath);$(TargetDir)$(TargetName).pdb;manifest.json" />
+      <DeployAssetFiles Include="assets\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DeployRootFiles)" DestinationFolder="$(ModsPath)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DeployAssetFiles)" DestinationFolder="$(ModsPath)\assets" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

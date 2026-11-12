@@ -1,0 +1,15 @@
+# Build output
+bin/
+obj/
+*.user
+
+# IDE
+.vs/
+.idea/
+
+# Local reference copies (decompiled original, original binaries) - not part of this project
+decompiled/
+original-mod/
+
+# Tool metadata
+.freebuff/

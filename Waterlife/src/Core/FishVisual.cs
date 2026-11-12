@@ -141,16 +141,23 @@ internal sealed class FishVisualCache
         );
     }
 
-    /// <summary>Replicates the swim speed vanilla picks for a tank fish from <c>Data/Fish</c>.</summary>
+    /// <summary>
+    /// Replicates the swim speed vanilla picks for a tank fish. The layout mirrors
+    /// <c>TankFish</c>: a random speed from <c>Data/Fish</c>'s motion type, then overridden per
+    /// aquarium type. <c>Static</c> and <c>Float</c> deliberately keep the data value.
+    /// </summary>
     private (float Min, float Max) GetSpeedRange(string itemId, FishSwimType swimType)
     {
-        (float min, float max) = (0.25f, 0.35f);
+        // Vanilla's field starts at zero, so an item with aquarium data but no Data/Fish entry
+        // (modded fish, the extra legendary) does not drift on its own.
+        (float min, float max) = (0f, 0f);
 
         if (this.GetFishData().TryGetValue(itemId, out string? raw))
         {
             string[] fields = raw.Split('/');
             if (ArgUtility.Get(fields, 1) != "trap")
             {
+                (min, max) = (0.25f, 0.35f);
                 switch (ArgUtility.Get(fields, 2))
                 {
                     case "smooth":
@@ -167,7 +174,7 @@ internal sealed class FishVisualCache
         {
             // Vanilla clamps fishScale (0.75) into 0.3..0.4 for eels, which is always 0.4.
             FishSwimType.Eel => (0.4f, 0.4f),
-            FishSwimType.Cephalopod or FishSwimType.Ground or FishSwimType.Crawl or FishSwimType.Static => (0f, 0f),
+            FishSwimType.Cephalopod or FishSwimType.Ground or FishSwimType.Crawl => (0f, 0f),
             _ => (min, max),
         };
     }

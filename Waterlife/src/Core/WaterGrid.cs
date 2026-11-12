@@ -14,6 +14,9 @@ internal sealed class WaterGrid
 {
     public const int TileSize = 64;
 
+    /// <summary>Deepest water depth the game reports; anything further from shore is the same value.</summary>
+    public const int MaxDepth = 5;
+
     private readonly bool[] water;
     private readonly int[] depth;
     private readonly int stride;
@@ -36,10 +39,9 @@ internal sealed class WaterGrid
         this.depth = new int[cells];
     }
 
-    /// <summary>Build the grid for a location, or null if it has no water data.</summary>
-    public static WaterGrid? TryBuild(GameLocation location)
+    /// <summary>Build the grid for a location's water data, or null if there is none.</summary>
+    public static WaterGrid? TryBuild(WaterTiles? tiles)
     {
-        WaterTiles? tiles = location.waterTiles;
         if (tiles?.waterTiles is null)
             return null;
 
@@ -65,17 +67,22 @@ internal sealed class WaterGrid
     }
 
     /// <summary>
-    /// Fishing depth of a tile: the number of tiles to the nearest shore, which is what
-    /// <c>Data/Fish</c> means by water depth. Never returns less than 1.
+    /// Fishing depth of a tile, matching the value a real cast would pass to the fish picker:
+    /// the Chebyshev distance to the nearest land tile, capped at 5, minus one. Off-map tiles are
+    /// not land, so water at a map edge reads as deep and tiles outside the map read as the maximum.
     /// </summary>
     public int GetDepth(int tileX, int tileY)
     {
         int x = tileX + 1;
         int y = tileY + 1;
         if (x < 0 || y < 0 || x >= this.stride || y >= this.MapHeight + 2)
-            return 1;
+            return MaxDepth;
 
-        return Math.Max(1, this.depth[x + y * this.stride]);
+        int distance = this.depth[x + y * this.stride];
+        if (distance < 0)
+            return MaxDepth;
+
+        return Math.Max(0, Math.Min(distance, MaxDepth + 1) - 1);
     }
 
     public Point RandomSpawnTile(Random rng)
@@ -123,8 +130,9 @@ internal sealed class WaterGrid
     }
 
     /// <summary>
-    /// Flood fill the distance to the nearest shore for every water tile. The padding ring and
-    /// every non-water tile are depth 0, so map edges behave like shore.
+    /// Flood fill the distance from every tile to the nearest land tile with the same definition
+    /// the game uses for fishing depth: Chebyshev distance, only tiles on the map count as land,
+    /// and anything further than 5 tiles away is indistinguishable from open water.
     /// </summary>
     private void FillDepths(WaterTiles tiles)
     {
@@ -135,18 +143,16 @@ internal sealed class WaterGrid
         for (int i = 0; i < this.depth.Length; i++)
             this.depth[i] = -1;
 
-        for (int y = 0; y < paddedHeight; y++)
+        for (int y = 0; y < this.MapHeight; y++)
         {
-            for (int x = 0; x < paddedWidth; x++)
+            for (int x = 0; x < this.MapWidth; x++)
             {
-                int mapX = x - 1;
-                int mapY = y - 1;
-                bool isWater = mapX >= 0 && mapY >= 0 && mapX < this.MapWidth && mapY < this.MapHeight && tiles[mapX, mapY];
-                if (isWater)
+                if (tiles[x, y])
                     continue;
 
-                this.depth[x + y * paddedWidth] = 0;
-                queue.Enqueue(x + y * paddedWidth);
+                int index = (x + 1) + (y + 1) * paddedWidth;
+                this.depth[index] = 0;
+                queue.Enqueue(index);
             }
         }
 
@@ -157,23 +163,30 @@ internal sealed class WaterGrid
             int y = index / paddedWidth;
             int next = this.depth[index] + 1;
 
-            if (x > 0)
-                Relax(index - 1, next);
-            if (x + 1 < paddedWidth)
-                Relax(index + 1, next);
-            if (y > 0)
-                Relax(index - paddedWidth, next);
-            if (y + 1 < paddedHeight)
-                Relax(index + paddedWidth, next);
-        }
+            // Distances past 6 are all reported as the maximum, so stop expanding there.
+            if (next > MaxDepth + 1)
+                continue;
 
-        void Relax(int index, int value)
-        {
-            if (this.depth[index] >= 0)
-                return;
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    if (dx == 0 && dy == 0)
+                        continue;
 
-            this.depth[index] = value;
-            queue.Enqueue(index);
+                    int neighbourX = x + dx;
+                    int neighbourY = y + dy;
+                    if (neighbourX < 0 || neighbourY < 0 || neighbourX >= paddedWidth || neighbourY >= paddedHeight)
+                        continue;
+
+                    int neighbour = neighbourX + neighbourY * paddedWidth;
+                    if (this.depth[neighbour] >= 0)
+                        continue;
+
+                    this.depth[neighbour] = next;
+                    queue.Enqueue(neighbour);
+                }
+            }
         }
     }
 }

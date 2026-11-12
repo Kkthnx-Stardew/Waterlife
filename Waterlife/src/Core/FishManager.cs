@@ -213,7 +213,7 @@ internal sealed class FishManager
     private void Populate(GameLocation location)
     {
         long start = Stopwatch.GetTimestamp();
-        this.grid = WaterGrid.TryBuild(location);
+        this.grid = WaterGrid.TryBuild(location.waterTiles);
         this.gridMs = Elapsed(start);
 
         if (this.grid is null || this.grid.SpawnTileCount == 0)

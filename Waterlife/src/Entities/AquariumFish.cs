@@ -175,7 +175,8 @@ internal sealed class AquariumFish
             offsetX = -offsetX - segmentWidth + 1;
         }
 
-        float bob = (float)Math.Sin(Game1.currentGameTime.TotalGameTime.TotalSeconds * 1.25 + this.position.X / 32f) * 2f;
+        double seconds = Game1.currentGameTime.TotalGameTime.TotalSeconds;
+        float bob = (float)Math.Sin(seconds * 1.25 + this.position.X / 32f) * 2f;
         if (this.visual.SwimType is FishSwimType.Ground or FishSwimType.Crawl or FishSwimType.Static)
             bob = 0f;
 
@@ -248,9 +249,9 @@ internal sealed class AquariumFish
                     if (this.facingLeft)
                         phaseOffset *= -1f;
 
-                    float wave = (float)Math.Sin(
-                        i * 20 + Game1.currentGameTime.TotalGameTime.TotalSeconds * 25.0 * phaseSpeed + phaseOffset * this.position.X / 16f
-                    ) * taper * speedFactor;
+                    float wave = (float)Math.Sin(i * 20 + seconds * 25.0 * phaseSpeed + phaseOffset * this.position.X / 16f)
+                        * taper
+                        * speedFactor;
 
                     b.Draw(
                         texture,

@@ -142,7 +142,7 @@ internal sealed class WaterDebris
         }
     }
 
-    public void Draw(SpriteBatch b, Rectangle viewport)
+    public void Draw(SpriteBatch b, Rectangle viewport, bool drawShadow)
     {
         if (!viewport.Contains((int)this.position.X, (int)(-this.position.Y)))
             return;
@@ -160,7 +160,7 @@ internal sealed class WaterDebris
             b.Draw(this.texture, drawPosition, this.source, Color.White * this.alpha, this.rotation, this.origin, this.scale, SpriteEffects.None, 1f);
         }
 
-        if (ModEntry.Instance.Config.DrawItemShadows)
+        if (drawShadow)
         {
             b.Draw(
                 Game1.shadowTexture,

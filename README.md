@@ -16,7 +16,7 @@ shekurika, targeting Stardew Valley 1.6 and SMAPI 4.
   statue basket in SVE's woods) on their configured tiles.
 - Adds cave jelly to the mines and respects the vanilla spawn caps there.
 - Draws behind the water normally, and in front of it for locations flagged `Underwater`.
-- Never draws on top of itself: one fish per species parses the sprite data once and shares it.
+- Parses each species' sprite data once and shares it across every fish, instead of re-parsing it for each spawn.
 
 ## Install
 

@@ -183,13 +183,14 @@ internal sealed class FishManager
 
     public void Draw(SpriteBatch b, Rectangle viewport)
     {
-        bool drawShadows = Config.DrawFishShadows;
+        bool drawFishShadows = Config.DrawFishShadows;
+        bool drawItemShadows = Config.DrawItemShadows;
 
         for (int i = 0; i < this.fish.Count; i++)
-            this.fish[i].Draw(b, viewport, 0.5f, drawShadows);
+            this.fish[i].Draw(b, viewport, 0.5f, drawFishShadows);
 
         for (int i = 0; i < this.debris.Count; i++)
-            this.debris[i].Draw(b, viewport);
+            this.debris[i].Draw(b, viewport, drawItemShadows);
     }
 
     /// <summary>Add a persistent decoration, used by the <c>VF.SpawnBasket</c> tile action.</summary>

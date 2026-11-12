@@ -13,7 +13,10 @@ namespace Waterlife;
 
 public sealed class ModEntry : Mod
 {
-    /// <summary>Asset name of the per-location rules, unchanged so content packs keep working.</summary>
+    /// <summary>
+    /// Legacy asset name of the per-location rules. Kept exactly as Visible Fish used it, because
+    /// Stardew Valley Expanded, Ridgeside and Sunberry patch this key by name.
+    /// </summary>
     internal const string LocationDataAsset = "Mods/shekurika.VisibleFish/LocationData";
 
     /// <summary>Item and texture id of the extra legendary fish added by this mod.</summary>

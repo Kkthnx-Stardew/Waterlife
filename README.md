@@ -89,7 +89,20 @@ dotnet build Waterlife/Waterlife.csproj -c Release -p:GamePath="C:\Program Files
 
 Add `-p:DeployToMods=true` to also copy the build into `Mods\Waterlife`.
 
+## Tests
+
+The water grid and location data checks run as a plain console program, no test framework needed:
+
+```
+dotnet run --project tests/Waterlife.Tests/Waterlife.Tests.csproj -c Release -p:GamePath="C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley"
+```
+
+It prints one line per assertion and exits non-zero if any fail. The checks cover the fishing depth
+values (including the 0-5 cap and off-map behaviour), which water tiles are spawnable, and that the
+shipped `LocationData.json` still parses with and without per-location overrides.
+
 ## Credits
 
-- Original mod, bundled art and location data: shekurika.
+- Original mod, bundled art and location data: shekurika. See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)
+  for exactly which files that covers.
 - Rewrite, 1.6 support and the spawner: Kkthnx.

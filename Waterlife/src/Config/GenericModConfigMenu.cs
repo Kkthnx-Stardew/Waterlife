@@ -54,6 +54,9 @@ internal static class GenericModConfigMenu
         if (api is null)
             return;
 
+        // Menu text lives in i18n/default.json so it can be translated.
+        Func<string> Text(string key) => () => helper.Translation.Get(key).ToString();
+
         api.Register(
             mod.ModManifest,
             reset: () => mod.Config = new ModConfig(),
@@ -64,8 +67,8 @@ internal static class GenericModConfigMenu
             mod.ModManifest,
             getValue: () => getConfig().MaximumFish,
             setValue: value => getConfig().MaximumFish = value,
-            name: () => "Maximum fish",
-            tooltip: () => "Upper limit for how many fish can be in the water at once. Lower it if the mod costs too much performance. Default: 500",
+            name: Text("config.maximum-fish.name"),
+            tooltip: Text("config.maximum-fish.tooltip"),
             min: 0,
             max: 8000,
             interval: 10
@@ -75,8 +78,8 @@ internal static class GenericModConfigMenu
             mod.ModManifest,
             getValue: () => getConfig().FishDensity,
             setValue: value => getConfig().FishDensity = value,
-            name: () => "Fish density",
-            tooltip: () => "Fish per water tile, so 0.1 means every 10th tile gets a fish. Still limited by Maximum fish. Default: 0.2",
+            name: Text("config.fish-density.name"),
+            tooltip: Text("config.fish-density.tooltip"),
             min: 0.01f,
             max: 2f,
             interval: 0.01f
@@ -86,58 +89,58 @@ internal static class GenericModConfigMenu
             mod.ModManifest,
             getValue: () => getConfig().ShowTreasure,
             setValue: value => getConfig().ShowTreasure = value,
-            name: () => "Show treasure in the water",
-            tooltip: () => "Show paintings, furniture and other non-fish treasures that can be fished here."
+            name: Text("config.show-treasure.name"),
+            tooltip: Text("config.show-treasure.tooltip")
         );
 
         api.AddBoolOption(
             mod.ModManifest,
             getValue: () => getConfig().TrashOutside,
             setValue: value => getConfig().TrashOutside = value,
-            name: () => "Trash outside the farm"
+            name: Text("config.trash-outside.name")
         );
 
         api.AddBoolOption(
             mod.ModManifest,
             getValue: () => getConfig().TrashFarm,
             setValue: value => getConfig().TrashFarm = value,
-            name: () => "Trash on the farm"
+            name: Text("config.trash-farm.name")
         );
 
         api.AddBoolOption(
             mod.ModManifest,
             getValue: () => getConfig().DisableTrashLvl10,
             setValue: value => getConfig().DisableTrashLvl10 = value,
-            name: () => "Hide junk at fishing level 10",
-            tooltip: () => "Stop showing junk items (trash, driftwood, soggy newspaper...) once your fishing level is 10. Seaweed and algae are still shown."
+            name: Text("config.disable-trash-lvl10.name"),
+            tooltip: Text("config.disable-trash-lvl10.tooltip")
         );
 
         api.AddBoolOption(
             mod.ModManifest,
             getValue: () => getConfig().DrawItemShadows,
             setValue: value => getConfig().DrawItemShadows = value,
-            name: () => "Draw shadows under items"
+            name: Text("config.draw-item-shadows.name")
         );
 
         api.AddBoolOption(
             mod.ModManifest,
             getValue: () => getConfig().DrawFishShadows,
             setValue: value => getConfig().DrawFishShadows = value,
-            name: () => "Draw shadows under fish"
+            name: Text("config.draw-fish-shadows.name")
         );
 
         api.AddBoolOption(
             mod.ModManifest,
             getValue: () => getConfig().RotateAlgae,
             setValue: value => getConfig().RotateAlgae = value,
-            name: () => "Rotate algae and seaweed"
+            name: Text("config.rotate-algae.name")
         );
 
         api.AddBoolOption(
             mod.ModManifest,
             getValue: () => getConfig().FilterEels,
             setValue: value => getConfig().FilterEels = value,
-            name: () => "Hide eel-like fish"
+            name: Text("config.filter-eels.name")
         );
     }
 }

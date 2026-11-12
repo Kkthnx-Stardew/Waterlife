@@ -1,0 +1,16 @@
+{
+  "config.maximum-fish.name": "Maximum fish",
+  "config.maximum-fish.tooltip": "Upper limit for how many fish can be in the water at once. Lower it if the mod costs too much performance. Default: 500",
+  "config.fish-density.name": "Fish density",
+  "config.fish-density.tooltip": "Fish per water tile, so 0.1 means every 10th tile gets a fish. Still limited by Maximum fish. Default: 0.2",
+  "config.show-treasure.name": "Show treasure in the water",
+  "config.show-treasure.tooltip": "Show paintings, furniture and other non-fish treasures that can be fished here.",
+  "config.trash-outside.name": "Trash outside the farm",
+  "config.trash-farm.name": "Trash on the farm",
+  "config.disable-trash-lvl10.name": "Hide junk at fishing level 10",
+  "config.disable-trash-lvl10.tooltip": "Stop showing junk items (trash, driftwood, soggy newspaper...) once your fishing level is 10. Seaweed and algae are still shown.",
+  "config.draw-item-shadows.name": "Draw shadows under items",
+  "config.draw-fish-shadows.name": "Draw shadows under fish",
+  "config.rotate-algae.name": "Rotate algae and seaweed",
+  "config.filter-eels.name": "Hide eel-like fish"
+}

@@ -117,6 +117,9 @@ public sealed class ModEntry : Mod
         }
         else if (e.Name.IsEquivalentTo("Maps/VFStatue"))
         {
+            // Required, not decorative. SMAPI strips the leading dot from the map's ".VFStatue.png"
+            // tilesheet source, does not find "assets/VFStatue.png", and falls back to the content key
+            // "Maps/VFStatue". Without this loader the statue would draw as a missing texture.
             e.LoadFromModFile<Texture2D>("assets/.VFStatue.png", AssetLoadPriority.High);
         }
         else if (this.stardewValleyExpandedLoaded && e.Name.IsEquivalentTo("Maps/Woods"))

@@ -8,7 +8,7 @@
     <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <DebugType>portable</DebugType>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -52,7 +52,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Waterlife.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="manifest.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="i18n\**" CopyToOutputDirectory="PreserveNewest" LinkBase="i18n" />
     <None Include="assets\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets" />
   </ItemGroup>
 
@@ -61,9 +66,11 @@
     <ItemGroup>
       <DeployRootFiles Include="$(TargetPath);$(TargetDir)$(TargetName).pdb;manifest.json" />
       <DeployAssetFiles Include="assets\**\*" />
+      <DeployI18nFiles Include="i18n\**\*" />
     </ItemGroup>
     <Copy SourceFiles="@(DeployRootFiles)" DestinationFolder="$(ModsPath)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(DeployAssetFiles)" DestinationFolder="$(ModsPath)\assets" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DeployI18nFiles)" DestinationFolder="$(ModsPath)\i18n" SkipUnchangedFiles="true" />
   </Target>
 
 </Project>

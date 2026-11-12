@@ -73,8 +73,23 @@ internal sealed class FishManager
 
     private static ModConfig Config => ModEntry.Instance.Config;
 
-    private int TargetCount =>
-        this.grid is null ? 0 : (int)MathF.Min(this.grid.SpawnTileCount * Config.FishDensity, Config.MaximumFish);
+    /// <summary>Cap for this location: its own override if it has one, otherwise the config value.</summary>
+    private int MaximumFish => Math.Max(0, this.rules?.MaximumFish ?? Config.MaximumFish);
+
+    private int TargetCount
+    {
+        get
+        {
+            if (this.grid is null)
+                return 0;
+
+            float density = this.rules?.FishDensity ?? Config.FishDensity;
+            if (!float.IsFinite(density) || density < 0f)
+                density = 0f;
+
+            return (int)MathF.Min(this.grid.SpawnTileCount * density, this.MaximumFish);
+        }
+    }
 
     public void ResetForLocation(GameLocation? location)
     {
@@ -384,7 +399,7 @@ internal sealed class FishManager
 
     private bool AddItem(Item item, int tileX, int tileY)
     {
-        if (this.fish.Count + this.debris.Count >= Config.MaximumFish)
+        if (this.fish.Count + this.debris.Count >= this.MaximumFish)
             return false;
 
         FishVisual? visual = this.visuals.Get(item.ItemId);
@@ -414,7 +429,7 @@ internal sealed class FishManager
 
     private bool AddFish(string itemId, int tileX, int tileY, bool persistent, FishVisual? visual = null)
     {
-        if (this.grid is null || this.fish.Count + this.debris.Count >= Config.MaximumFish)
+        if (this.grid is null || this.fish.Count + this.debris.Count >= this.MaximumFish)
             return false;
 
         visual ??= this.visuals.Get(itemId);
@@ -430,7 +445,7 @@ internal sealed class FishManager
 
     private bool AddDebris(string qualifiedItemId, int tileX, int tileY, bool persistent, bool asFurniture = false)
     {
-        if (this.grid is null || this.fish.Count + this.debris.Count >= Config.MaximumFish)
+        if (this.grid is null || this.fish.Count + this.debris.Count >= this.MaximumFish)
             return false;
 
         try

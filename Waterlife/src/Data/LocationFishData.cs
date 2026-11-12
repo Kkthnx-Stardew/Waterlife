@@ -20,6 +20,12 @@ internal sealed class LocationFishData
     /// <summary>Draw this location's fish in front of the water instead of behind it.</summary>
     public bool Underwater;
 
+    /// <summary>Fish per water tile for this location, or null to use the global config value.</summary>
+    public float? FishDensity;
+
+    /// <summary>Maximum fish and items in this location, or null to use the global config value.</summary>
+    public int? MaximumFish;
+
     public Dictionary<string, LocationSpawn> Spawns = new();
 
     public TrashMode TrashMode

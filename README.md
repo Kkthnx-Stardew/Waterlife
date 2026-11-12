@@ -32,8 +32,8 @@ Everything is editable in `config.json` or through
 
 | Option | Default | What it does |
 | --- | --- | --- |
-| `MaximumFish` | 500 | Hard cap on how many fish and items exist in the water at once. Lower it for weaker hardware. |
-| `FishDensity` | 0.2 | Fish per water tile, so 0.1 means roughly every tenth tile gets one. Still limited by `MaximumFish`. |
+| `MaximumFish` | 500 | Hard cap on how many fish and items exist in the water at once. Lower it for weaker hardware. Can be overridden per location. |
+| `FishDensity` | 0.2 | Fish per water tile, so 0.1 means roughly every tenth tile gets one. Still limited by `MaximumFish`. Can be overridden per location. |
 | `TrashOutside` | true | Show junk (trash, driftwood, algae...) in locations outside the farm. |
 | `TrashFarm` | true | Same, for farm water. |
 | `DisableTrashLvl10` | true | Stop showing junk at fishing level 10. Seaweed and algae still appear. |
@@ -42,6 +42,23 @@ Everything is editable in `config.json` or through
 | `DrawItemShadows` | true | Shadow under items. |
 | `RotateAlgae` | false | Let seaweed and algae spin. |
 | `FilterEels` | false | Hide eel-type fish. |
+
+### Per-location overrides
+
+Any location entry in `assets/LocationData.json` can set its own density and cap, so a big outdoor
+map can hold more fish without raising the global limit everywhere:
+
+```json
+"Forest": {
+  "FishDensity": 0.08,
+  "MaximumFish": 240,
+  "Spawns": { }
+}
+```
+
+Both keys are optional; omit them and the config values apply. Setting either to `0` stops spawning
+in that location. The cap applies to fixed spawns too. `SpawnTrash` and `Underwater` work the same
+way and are already used by the shipped data.
 
 ## Compatibility
 

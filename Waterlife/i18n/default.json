@@ -1,8 +1,8 @@
 {
   "config.maximum-fish.name": "Maximum fish",
-  "config.maximum-fish.tooltip": "Upper limit for how many fish can be in the water at once. Lower it if the mod costs too much performance. Default: 500",
+  "config.maximum-fish.tooltip": "Upper limit for how many fish can be in the water at once. Lower it if the mod costs too much performance. Default: 160",
   "config.fish-density.name": "Fish density",
-  "config.fish-density.tooltip": "Fish per water tile, so 0.1 means every 10th tile gets a fish. Still limited by Maximum fish. Default: 0.2",
+  "config.fish-density.tooltip": "Fish per water tile, so 0.1 means every 10th tile gets a fish. Still limited by Maximum fish. Default: 0.1",
   "config.show-treasure.name": "Show treasure in the water",
   "config.show-treasure.tooltip": "Show paintings, furniture and other non-fish treasures that can be fished here.",
   "config.trash-outside.name": "Trash outside the farm",

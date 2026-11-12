@@ -4,9 +4,9 @@ public sealed class ModConfig
 {
     public bool DrawFishShadows { get; set; } = true;
 
-    public int MaximumFish { get; set; } = 500;
+    public int MaximumFish { get; set; } = 160;
 
-    public float FishDensity { get; set; } = 0.2f;
+    public float FishDensity { get; set; } = 0.1f;
 
     public bool TrashOutside { get; set; } = true;
 

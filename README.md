@@ -32,8 +32,8 @@ Everything is editable in `config.json` or through
 
 | Option | Default | What it does |
 | --- | --- | --- |
-| `MaximumFish` | 500 | Hard cap on how many fish and items exist in the water at once. Lower it for weaker hardware. Can be overridden per location. |
-| `FishDensity` | 0.2 | Fish per water tile, so 0.1 means roughly every tenth tile gets one. Still limited by `MaximumFish`. Can be overridden per location. |
+| `MaximumFish` | 160 | Hard cap on how many fish and items exist in the water at once. Lower it for weaker hardware. Can be overridden per location. |
+| `FishDensity` | 0.1 | Fish per water tile, so 0.1 means roughly every tenth tile gets one. Still limited by `MaximumFish`. Can be overridden per location. |
 | `TrashOutside` | true | Show junk (trash, driftwood, algae...) in locations outside the farm. |
 | `TrashFarm` | true | Same, for farm water. |
 | `DisableTrashLvl10` | true | Stop showing junk at fishing level 10. Seaweed and algae still appear. |

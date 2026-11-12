@@ -6,7 +6,7 @@ using StardewValley;
 namespace Waterlife;
 
 /// <summary>
-/// One fish swimming in the water. Holds only its own state; sprites and animations
+/// One fish swimming in the water. Holds only its own state. Sprites and animations
 /// are shared through <see cref="FishVisual"/>.
 /// </summary>
 internal sealed class AquariumFish

@@ -23,7 +23,7 @@ shekurika, targeting Stardew Valley 1.6 and SMAPI 4.
 1. Install SMAPI 4.0 or later.
 2. Drop the `Waterlife` folder into `Stardew Valley/Mods`.
 
-Do not run this alongside Visible Fish — both would draw the same fish.
+Do not run this alongside Visible Fish. Both would draw the same fish.
 
 ## Config
 
@@ -56,7 +56,7 @@ map can hold more fish without raising the global limit everywhere:
 }
 ```
 
-Both keys are optional; omit them and the config values apply. Setting either to `0` stops spawning
+Both keys are optional. Omit them and the config values apply. Setting either to `0` stops spawning
 in that location. The cap applies to fixed spawns too. `SpawnTrash` and `Underwater` work the same
 way and are already used by the shipped data.
 
@@ -72,10 +72,10 @@ Each location logs one line when it finishes populating, which is the honest ans
 this cost":
 
 ```
-Beach: 148 fish + 9 debris on 1512 water tiles (target 151) in 264 ms, 168 tile picks / 151 fish rolls; grid 0.61 ms, setup 1.12 ms
+Beach: 148 fish + 9 debris on 1512 water tiles (target 151) in 264 ms, 168 tile picks / 151 fish rolls | grid 0.61 ms, setup 1.12 ms
 ```
 
-`grid` and `setup` happen inside the warp frame; the fill time is spread over ticks at 12 entities
+`grid` and `setup` happen inside the warp frame, and the fill time is spread over ticks at 12 entities
 per tick. Nothing is logged once a location is full.
 
 ## Building

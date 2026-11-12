@@ -14,7 +14,7 @@ internal sealed class WaterGrid
 {
     public const int TileSize = 64;
 
-    /// <summary>Deepest water depth the game reports; anything further from shore is the same value.</summary>
+    /// <summary>Deepest water depth the game reports. Anything further from shore is the same value.</summary>
     public const int MaxDepth = 5;
 
     private readonly bool[] water;

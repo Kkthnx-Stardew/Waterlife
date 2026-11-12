@@ -70,7 +70,7 @@ internal sealed class FishVisual
 
 /// <summary>
 /// Loads and caches <see cref="FishVisual"/>s from <c>Data/AquariumFish</c> and <c>Data/Fish</c>.
-/// The vanilla fish tank parses this data for every single fish it creates; we parse it once per species.
+/// The vanilla fish tank parses this data for every single fish it creates. We parse it once per species.
 /// </summary>
 internal sealed class FishVisualCache
 {

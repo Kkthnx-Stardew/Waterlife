@@ -130,7 +130,7 @@ internal sealed class FishManager
         if (location is null)
             return;
 
-        // Some mods swap Game1.currentLocation without a warp; rebuild instead of drawing stale fish.
+        // Some mods swap Game1.currentLocation without a warp. Rebuild instead of drawing stale fish.
         if (!ReferenceEquals(location, this.activeLocation))
         {
             this.ResetForLocation(location);
@@ -180,7 +180,7 @@ internal sealed class FishManager
         }
         else if (this.retryInMs > 0f)
         {
-            // Nothing was catchable when we looked; time, weather or the player's level may have
+            // Nothing was catchable when we looked. Time, weather or the player's level may have
             // changed since, so try again later instead of leaving the location empty.
             this.retryInMs -= (float)time.ElapsedGameTime.TotalMilliseconds;
             if (this.retryInMs <= 0f)
@@ -500,7 +500,7 @@ internal sealed class FishManager
         Log.Info(
             $"{locationName}: {this.fish.Count} fish + {this.debris.Count} debris on {this.grid?.SpawnTileCount ?? 0} water tiles "
             + $"(target {this.TargetCount}) in {Elapsed(this.fillStarted):0} ms, "
-            + $"{this.attempts} tile picks / {this.rolls} fish rolls; grid {this.gridMs:0.00} ms, setup {this.setupMs:0.00} ms"
+            + $"{this.attempts} tile picks / {this.rolls} fish rolls | grid {this.gridMs:0.00} ms, setup {this.setupMs:0.00} ms"
         );
     }
 

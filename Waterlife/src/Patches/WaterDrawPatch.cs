@@ -8,7 +8,7 @@ namespace Waterlife;
 
 /// <summary>
 /// Draws the water entities from inside <see cref="GameLocation.drawWater"/> so they line up with
-/// the water layer. Most locations draw before the water (behind it); locations flagged
+/// the water layer. Most locations draw before the water (behind it). Locations flagged
 /// <c>Underwater</c> in LocationData.json draw after it (in front).
 /// </summary>
 [HarmonyPatch(typeof(GameLocation), nameof(GameLocation.drawWater))]

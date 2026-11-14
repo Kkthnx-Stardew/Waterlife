@@ -26,8 +26,8 @@ commit messages, README text and chat replies.
 ## This mod
 
 - The content key `Mods/shekurika.VisibleFish/LocationData` stays. Content packs patch it by name.
-- `Maps/VFStatue` must stay registered. SMAPI strips the dot from the tilesheet name and falls back
-  to that key, so removing the loader breaks the statue.
+- No files from other mods. Fish use the game's own sprites. The only bundled art is
+  `GoldenFish.png` (one 32x24 frame) and `WaterlifeStatue.png` (32x48, the statue in SVE's woods).
 - Version bumps go in both `Waterlife.csproj` and `manifest.json`.
 - Build and test commands are in the README.
 

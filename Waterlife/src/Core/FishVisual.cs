@@ -31,7 +31,9 @@ internal sealed class FishVisual
         int[]? dartHoldFrames,
         int[]? dartEndFrames,
         float minSpeed,
-        float maxSpeed
+        float maxSpeed,
+        int frameWidth = 24,
+        float sizeFactor = 1f
     )
     {
         this.Texture = texture;
@@ -43,7 +45,9 @@ internal sealed class FishVisual
         this.DartEndFrames = dartEndFrames;
         this.MinSpeed = minSpeed;
         this.MaxSpeed = maxSpeed;
-        this.FramesPerRow = Math.Max(1, texture.Width / 24);
+        this.FrameWidth = frameWidth;
+        this.SizeFactor = sizeFactor;
+        this.FramesPerRow = Math.Max(1, texture.Width / frameWidth);
     }
 
     public Texture2D Texture { get; }
@@ -64,7 +68,16 @@ internal sealed class FishVisual
 
     public float MaxSpeed { get; }
 
-    /// <summary>How many 24px wide frames fit in one row of the sprite sheet.</summary>
+    /// <summary>Width in pixels of one frame in the sprite sheet. The game's own fish use 24.</summary>
+    public int FrameWidth { get; }
+
+    /// <summary>
+    /// How large the sprite is drawn compared with a game fish. A frame wider than 24 pixels uses a
+    /// factor below 1 so its fish ends up only a little bigger than the vanilla ones.
+    /// </summary>
+    public float SizeFactor { get; }
+
+    /// <summary>How many frames fit in one row of the sprite sheet.</summary>
     public int FramesPerRow { get; }
 }
 
@@ -84,11 +97,33 @@ internal sealed class FishVisualCache
     private Dictionary<string, string>? aquariumData;
     private Dictionary<string, string>? fishData;
     private Texture2D? aquariumTexture;
+    private FishVisual? goldenFish;
+    private bool goldenFishFailed;
 
     public FishVisualCache(IModHelper helper)
     {
         this.helper = helper;
         helper.Events.Content.AssetsInvalidated += this.OnAssetsInvalidated;
+    }
+
+    /// <summary>Get the rare golden fish that drifts through Sunberry Village, or null if its sprite can't be loaded.</summary>
+    public FishVisual? GetGoldenFish()
+    {
+        if (this.goldenFish is not null || this.goldenFishFailed)
+            return this.goldenFish;
+
+        try
+        {
+            Texture2D texture = this.helper.ModContent.Load<Texture2D>("assets/GoldenFish.png");
+            this.goldenFish = new FishVisual(texture, 0, FishSwimType.Normal, null, null, null, null, 0.25f, 0.35f, frameWidth: 32, sizeFactor: 0.75f);
+        }
+        catch (Exception ex)
+        {
+            this.goldenFishFailed = true;
+            Log.ErrorOnce("goldenfish", "Could not load assets/GoldenFish.png.", ex);
+        }
+
+        return this.goldenFish;
     }
 
     /// <summary>Get the visual data for a fish, or null if it has no aquarium sprite.</summary>

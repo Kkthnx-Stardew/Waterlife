@@ -57,6 +57,15 @@ Check("open water spawn tiles", open.SpawnTileCount, 100);
 Check("1-wide channel spawn tiles", Grid(Map(9, 5, (x, y) => y == 2 && x >= 1 && x <= 7)).SpawnTileCount, 0);
 Check("3-wide channel spawn tiles", Grid(Map(9, 7, (x, y) => y >= 2 && y <= 4 && x >= 1 && x <= 7)).SpawnTileCount, 5);
 
+// Pixels left of or above the map must land in tile -1, not tile 0, or entities slip off the edge.
+Check("pixel 0 is tile 0", WaterGrid.TileOf(0), 0);
+Check("pixel 63 is tile 0", WaterGrid.TileOf(63), 0);
+Check("pixel 64 is tile 1", WaterGrid.TileOf(64), 1);
+Check("pixel -1 is tile -1", WaterGrid.TileOf(-1), -1);
+Check("pixel -64 is tile -1", WaterGrid.TileOf(-64), -1);
+Check("pixel -65 is tile -2", WaterGrid.TileOf(-65), -2);
+Check("pixel off the map edge is not water", pond.IsWater(WaterGrid.TileOf(-30), 3), false);
+
 Console.WriteLine();
 Console.WriteLine("Location data");
 
@@ -87,17 +96,64 @@ Check("shipped Forest density unset", locations["Forest"].FishDensity, null);
 Check("shipped Forest cap unset", locations["Forest"].MaximumFish, null);
 Check("Forest fixed spawns", locations["Forest"].Spawns.Count, 3);
 
-Console.WriteLine();
-Console.WriteLine("Statue map");
+// The game only offers the Angler to a player standing in rows 0 to 14 of the Town map (its own
+// PlayerPosition rule), so the fish has to be shown up there. It used to sit at the bottom left.
+foreach (string anglerKey in new[] { "Angler", "Ms_Angler" })
+{
+    Check($"{anglerKey} is in the north river", locations["Town"].Spawns[anglerKey].Y is >= 0 and <= 14, true);
+    Check($"{anglerKey} is not in the old south west spot", locations["Town"].Spawns[anglerKey].X != 10, true);
+}
 
+// These two items are only catchable once the game says so, so the fixed copy needs the same gate.
+Check("Fossilized spine condition", locations["IslandNorth"].Spawns["Fossilized_Spine"].Condition, "IS_ISLAND_NORTH_BRIDGE_FIXED");
+Check("Snake skull condition", locations["IslandWest"].Spawns["Snake_Skull"].Condition, "PLAYER_HAS_MAIL Current islandNorthCaveOpened");
+
+Check("Woods basket waits for SVE", locations["Woods"].Spawns["Wall_Basket"].Condition, "Kkthnx.Waterlife_MOD_LOADED FlashShifter.StardewValleyExpandedCP");
+Check("Radioactive Carp is listed", locations["Sewer"].Spawns.ContainsKey("Radioactive_Carp"), true);
+
+int spawnsWithoutItem = locations.Values.SelectMany(l => l.Spawns.Values).Count(s => string.IsNullOrWhiteSpace(s.QualifiedItemId));
+Check("every fixed spawn names an item", spawnsWithoutItem, 0);
+
+Console.WriteLine();
+Console.WriteLine("Bundled files");
+
+// Nothing from the old mod's file set may come back.
+foreach (string legacy in new[] { "Waterlife/assets/.VFStatue.png", "Waterlife/assets/misc.txt" })
+{
+    bool present = false;
+    try
+    {
+        FindRepoFile(legacy);
+        present = true;
+    }
+    catch (FileNotFoundException)
+    {
+    }
+
+    Check($"{legacy} is gone", present, false);
+}
+
+// The statue map and its sheet have to agree, or the tiles would be cut in the wrong places.
 XDocument statue = XDocument.Load(FindRepoFile("Waterlife/assets/statue.tmx"));
-Check("root element", statue.Root?.Name.LocalName, "map");
-Check("tileset image source", statue.Descendants("image").First().Attribute("source")?.Value, ".VFStatue.png");
-Check("map properties stripped", statue.Descendants("property").Count(p => p.Parent?.Name.LocalName == "properties" && p.Parent.Parent?.Name.LocalName == "map"), 0);
+Check("statue tileset image", statue.Descendants("image").First().Attribute("source")?.Value, "WaterlifeStatue.png");
+Check("statue sheet size", PngSize(FindRepoFile("Waterlife/assets/WaterlifeStatue.png")), (32, 48));
+Check("statue map size in tiles", (statue.Root?.Attribute("width")?.Value, statue.Root?.Attribute("height")?.Value), ("2", "3"));
+Check("statue tile actions", statue.Descendants("property").Count(p => p.Attribute("value")?.Value == "Kkthnx.Waterlife_SpawnBasket"), 2);
+
+// The golden fish is one frame, 32 pixels wide, which is what the renderer is told to expect.
+Check("golden fish sheet size", PngSize(FindRepoFile("Waterlife/assets/GoldenFish.png")), (32, 24));
 
 Console.WriteLine();
 Console.WriteLine(failures == 0 ? "ALL PASS" : $"{failures} FAILURES");
 return failures == 0 ? 0 : 1;
+
+// Read the width and height from a PNG header (bytes 16 to 23), so no imaging library is needed.
+static (int, int) PngSize(string path)
+{
+    byte[] header = File.ReadAllBytes(path);
+    int Read(int offset) => (header[offset] << 24) | (header[offset + 1] << 16) | (header[offset + 2] << 8) | header[offset + 3];
+    return (Read(16), Read(20));
+}
 
 static string FindRepoFile(string relativePath)
 {

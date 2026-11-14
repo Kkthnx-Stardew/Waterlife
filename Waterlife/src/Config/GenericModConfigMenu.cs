@@ -60,7 +60,14 @@ internal static class GenericModConfigMenu
         api.Register(
             mod.ModManifest,
             reset: () => mod.Config = new ModConfig(),
-            save: () => helper.WriteConfig(mod.Config)
+            save: () =>
+            {
+                helper.WriteConfig(mod.Config);
+
+                // Fish and junk are rolled when they spawn, so without this a changed toggle would
+                // only take effect after the next warp.
+                ModEntry.RefreshAll();
+            }
         );
 
         api.AddNumberOption(

@@ -3,8 +3,9 @@
 Shows the fish, junk and treasure that can actually be caught in the water around you, so you can
 see what a cast would give you instead of guessing.
 
-A from-scratch rewrite of [Visible Fish](https://www.nexusmods.com/stardewvalley/mods/8897) by
-shekurika, targeting Stardew Valley 1.6 and SMAPI 4.
+Written from scratch for Stardew Valley 1.6 and SMAPI 4. The idea comes from
+[Visible Fish](https://www.nexusmods.com/stardewvalley/mods/8897) by shekurika. Waterlife contains
+none of that mod's files. Fish are drawn with the game's own sprites.
 
 ## What it does
 
@@ -12,8 +13,8 @@ shekurika, targeting Stardew Valley 1.6 and SMAPI 4.
   fishing level lookups, boss fish and catch limits all behave exactly like the real thing.
 - Uses the real fishing depth of each water tile, so shallow-only fish stay near the shore and
   deep-water fish appear in open water.
-- Places the mod's fixed spawns (Mutant Carp in the Sewer, the Legendary Family variants, the
-  statue basket in SVE's woods) on their configured tiles.
+- Places the legendary fish (Mutant Carp in the Sewer, the Legendary Family variants and so on) and a
+  few fixed treasures on their configured tiles, only while the game would still offer them.
 - Adds cave jelly to the mines and respects the vanilla spawn caps there.
 - Draws behind the water normally, and in front of it for locations flagged `Underwater`.
 - Parses each species' sprite data once and shares it across every fish, instead of re-parsing it for each spawn.
@@ -60,6 +61,23 @@ Both keys are optional. Omit them and the config values apply. Setting either to
 in that location. The cap applies to fixed spawns too. `SpawnTrash` and `Underwater` work the same
 way and are already used by the shipped data.
 
+## Good to know
+
+- Settings changed in Generic Mod Config Menu apply as soon as you press Save. Edits made by hand
+  in `config.json` need a restart.
+- Night Market fish (Midnight Squid, Spook Fish and Blobfish) show up on the beach only while you
+  are fishing with Magic Bait. That is the game's own rule for the south west corner, and
+  Waterlife shows exactly what the game would roll.
+- The legendary fish go away once you have caught them, even if you stay in the same spot.
+- Fixed treasure (the Fossilized Spine, the Snake Skull, furniture) follows the treasure setting
+  and the same unlock conditions the game uses.
+- Fish added by other mods are shown too, because Waterlife asks the game what can be caught. A
+  modded fish with its own entry in `Data/AquariumFish` gets its swimming sprite. One without an
+  entry is shown as its item icon.
+- Now and then a golden fish drifts through Sunberry Village. It is only for fun, it is not a catch.
+- Water that is painted into the map art instead of the game's water layer can't hold fish. That
+  covers the Calico Desert pond and Witch's Swamp.
+
 ## Compatibility
 
 Stardew Valley Expanded, Ridgeside Village and Sunberry Village patch this mod's data asset
@@ -103,6 +121,7 @@ shipped `LocationData.json` still parses with and without per-location overrides
 
 ## Credits
 
-- Original mod, bundled art and location data: shekurika. See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)
-  for exactly which files that covers.
-- Rewrite, 1.6 support and the spawner: Kkthnx.
+- The idea: [Visible Fish](https://www.nexusmods.com/stardewvalley/mods/8897) by shekurika.
+- Everything in this repository was made for this mod. Fish sprites come from the game and from the
+  mods that add fish. The only art in `assets` is the Sunberry golden fish and the statue in Stardew
+  Valley Expanded's woods.

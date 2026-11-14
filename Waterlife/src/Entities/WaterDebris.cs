@@ -119,13 +119,13 @@ internal sealed class WaterDebris
         this.position.X += horizontal;
 
         Rectangle bounds = this.GetBounds();
-        if (!this.grid.IsWater((bounds.Left - ShorePadding) / WaterGrid.TileSize, bounds.Center.Y / WaterGrid.TileSize))
+        if (!this.grid.IsWater(WaterGrid.TileOf(bounds.Left - ShorePadding), WaterGrid.TileOf(bounds.Center.Y)))
         {
             this.position.X -= horizontal;
             this.position.X += 4f;
             this.velocity.X *= -0.8f;
         }
-        else if (!this.grid.IsWater((bounds.Right + ShorePadding) / WaterGrid.TileSize, bounds.Center.Y / WaterGrid.TileSize))
+        else if (!this.grid.IsWater(WaterGrid.TileOf(bounds.Right + ShorePadding), WaterGrid.TileOf(bounds.Center.Y)))
         {
             this.position.X -= horizontal;
             this.velocity.X *= -0.8f;
@@ -134,8 +134,8 @@ internal sealed class WaterDebris
 
         this.position.Y += this.velocity.Y;
         bounds = this.GetBounds();
-        if (!this.grid.IsWater(bounds.Center.X / WaterGrid.TileSize, (bounds.Top - ShorePadding) / WaterGrid.TileSize)
-            || !this.grid.IsWater(bounds.Center.X / WaterGrid.TileSize, bounds.Bottom / WaterGrid.TileSize))
+        if (!this.grid.IsWater(WaterGrid.TileOf(bounds.Center.X), WaterGrid.TileOf(bounds.Top - ShorePadding))
+            || !this.grid.IsWater(WaterGrid.TileOf(bounds.Center.X), WaterGrid.TileOf(bounds.Bottom)))
         {
             this.position.Y -= this.velocity.Y;
             this.velocity.Y *= -0.8f;
@@ -152,13 +152,9 @@ internal sealed class WaterDebris
         Vector2 drawPosition = Game1.GlobalToLocal(world + new Vector2(drift, (float)(5.0 * Math.Sin(this.bobPhase * 0.002))));
 
         if (this.isFurniture)
-        {
             b.Draw(this.texture, drawPosition, this.source, Color.White, this.rotation, this.origin, this.scale, SpriteEffects.None, 0.8f);
-        }
         else
-        {
             b.Draw(this.texture, drawPosition, this.source, Color.White * this.alpha, this.rotation, this.origin, this.scale, SpriteEffects.None, 1f);
-        }
 
         if (drawShadow)
         {
@@ -192,21 +188,21 @@ internal sealed class WaterDebris
     private void PushIntoWater(float push)
     {
         Rectangle bounds = this.GetBounds();
-        if (!this.grid.IsWater(bounds.Left / WaterGrid.TileSize - 1, bounds.Center.Y / WaterGrid.TileSize))
+        if (!this.grid.IsWater(WaterGrid.TileOf(bounds.Left) - 1, WaterGrid.TileOf(bounds.Center.Y)))
         {
             this.position.X += push;
         }
-        else if (!this.grid.IsWater(bounds.Right / WaterGrid.TileSize + 1, bounds.Center.Y / WaterGrid.TileSize))
+        else if (!this.grid.IsWater(WaterGrid.TileOf(bounds.Right) + 1, WaterGrid.TileOf(bounds.Center.Y)))
         {
             this.position.X -= push;
         }
 
         bounds = this.GetBounds();
-        if (!this.grid.IsWater(bounds.Center.X / WaterGrid.TileSize, bounds.Top / WaterGrid.TileSize))
+        if (!this.grid.IsWater(WaterGrid.TileOf(bounds.Center.X), WaterGrid.TileOf(bounds.Top)))
         {
             this.position.Y -= push;
         }
-        else if (!this.grid.IsWater(bounds.Center.X / WaterGrid.TileSize, bounds.Bottom / WaterGrid.TileSize))
+        else if (!this.grid.IsWater(WaterGrid.TileOf(bounds.Center.X), WaterGrid.TileOf(bounds.Bottom)))
         {
             this.position.Y += push;
         }

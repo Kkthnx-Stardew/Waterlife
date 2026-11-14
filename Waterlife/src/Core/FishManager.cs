@@ -27,6 +27,9 @@ internal sealed class FishManager
     /// <summary>Stop trying in a location once this many attempts produced nothing at all.</summary>
     private const int GiveUpAfterAttempts = 40;
 
+    /// <summary>Most junk items shown in a location that has no fish to roll.</summary>
+    private const int JunkOnlyLimit = 12;
+
     /// <summary>How often to re-check a location whose water data was not ready yet, and how many times.</summary>
     private const int PopulateRetryTicks = 60;
     private const int MaxPopulateRetries = 3;
@@ -53,6 +56,9 @@ internal sealed class FishManager
     private int additions;
     private int rolls;
     private float retryInMs;
+
+    /// <summary>How many different fish the player had caught when this location was prepared.</summary>
+    private int caughtSpecies = -1;
 
     // Profiling for the populate/fill log line.
     private double gridMs;
@@ -91,6 +97,15 @@ internal sealed class FishManager
         }
     }
 
+    /// <summary>
+    /// Drop everything and rebuild on the next update. Clearing the active location makes
+    /// <see cref="Update"/> see a mismatch with the current one and start over.
+    /// </summary>
+    public void Invalidate()
+    {
+        this.ResetForLocation(null);
+    }
+
     public void ResetForLocation(GameLocation? location)
     {
         this.fish.Clear();
@@ -111,6 +126,7 @@ internal sealed class FishManager
         this.fillStarted = 0L;
         this.fillLogged = false;
         this.spawnDelay = -1;
+        this.caughtSpecies = Game1.player?.fishCaught.Length ?? -1;
 
         if (location is null)
             return;
@@ -132,6 +148,15 @@ internal sealed class FishManager
 
         // Some mods swap Game1.currentLocation without a warp. Rebuild instead of drawing stale fish.
         if (!ReferenceEquals(location, this.activeLocation))
+        {
+            this.ResetForLocation(location);
+            return;
+        }
+
+        // Fixed spawns such as the legendary fish are only shown until the player has caught them.
+        // Their conditions are read when the location is prepared, so a first catch needs a rebuild
+        // or the fish would stay on screen until the next warp.
+        if (this.caughtSpecies >= 0 && Game1.player.fishCaught.Length != this.caughtSpecies)
         {
             this.ResetForLocation(location);
             return;
@@ -208,7 +233,7 @@ internal sealed class FishManager
             this.debris[i].Draw(b, viewport, drawItemShadows);
     }
 
-    /// <summary>Add a persistent decoration, used by the <c>VF.SpawnBasket</c> tile action.</summary>
+    /// <summary>Add a persistent decoration, used by the statue's tile action.</summary>
     public void AddDecoration(string qualifiedItemId, int tileX, int tileY)
     {
         if (this.grid is null)
@@ -284,8 +309,10 @@ internal sealed class FishManager
             }
         }
 
-        if (this.ruleKey == "Custom_SBV_SunberryVillage" && this.rng.NextDouble() < 0.01)
-            this.AddFish(ModEntry.LegendaryFishItemId, 18, 71, persistent: true);
+        // A rare golden fish drifts through Sunberry Village now and then. It is only for fun, not a catch.
+        if (this.ruleKey == "Custom_SBV_SunberryVillage" && this.rng.NextDouble() < 0.01
+            && this.visuals.GetGoldenFish() is { } golden)
+            this.AddFish("Kkthnx.Waterlife_GoldenFish", 49, 50, persistent: true, golden);
 
         this.setupMs = Elapsed(start) - this.gridMs;
         this.fillStarted = Stopwatch.GetTimestamp();
@@ -321,9 +348,15 @@ internal sealed class FishManager
                 this.exclusiveFish.Add(item.QualifiedItemId);
 
             if (this.visuals.Get(item.ItemId) is not null)
+            {
                 this.AddFish(item.ItemId, spawn.X, spawn.Y, persistent: true);
-            else
+            }
+            else if (Config.ShowTreasure)
+            {
+                // Everything fixed that is not a fish is treasure (furniture, the fossilized spine),
+                // so the treasure toggle has to cover it like it covers the random catches.
                 this.AddDebris(item.QualifiedItemId, spawn.X, spawn.Y, persistent: true);
+            }
         }
     }
 
@@ -335,6 +368,14 @@ internal sealed class FishManager
         int missing = this.TargetCount - (this.fish.Count + this.debris.Count);
         if (missing <= 0)
             return;
+
+        // Junk-only water is full at the junk limit. Without this the loop would keep rolling
+        // 12 casts every tick for entities it is not allowed to add.
+        if (this.fish.Count == 0 && this.debris.Count >= JunkOnlyLimit)
+        {
+            this.LogFill(location.Name, force: true);
+            return;
+        }
 
         int budget = Math.Min(missing, MaxSpawnsPerTick);
         for (int i = 0; i < budget; i++)
@@ -402,6 +443,11 @@ internal sealed class FishManager
         if (this.fish.Count + this.debris.Count >= this.MaximumFish)
             return false;
 
+        // A mod can list an item that does not exist. Drawing the game's red error sprite in the
+        // water helps nobody.
+        if (ItemRegistry.GetDataOrErrorItem(item.QualifiedItemId).IsErrorItem)
+            return false;
+
         FishVisual? visual = this.visuals.Get(item.ItemId);
         if (visual is not null && item.Category == SObject.FishCategory)
             return this.AddFish(item.ItemId, tileX, tileY, persistent: false, visual);
@@ -411,7 +457,20 @@ internal sealed class FishManager
             return Config.ShowTreasure && this.AddDebris(item.QualifiedItemId, tileX, tileY, persistent: false);
         }
 
-        return this.ShouldShowTrash(item) && this.AddDebris(item.QualifiedItemId, tileX, tileY, persistent: false);
+        // A fish from a mod that has no aquarium sprite is still a fish. Show its item icon even when
+        // the junk toggles are off, because those toggles are about trash and not about fish.
+        if (item.Category == SObject.FishCategory)
+            return this.AddDebris(item.QualifiedItemId, tileX, tileY, persistent: false);
+
+        if (!this.ShouldShowTrash(item))
+            return false;
+
+        // Water with no fish in it at all (a modded event map, say) would otherwise fill up with
+        // hundreds of junk items. A few are enough to show what a cast would give.
+        if (this.fish.Count == 0 && this.debris.Count >= JunkOnlyLimit)
+            return false;
+
+        return this.AddDebris(item.QualifiedItemId, tileX, tileY, persistent: false);
     }
 
     private bool ShouldShowTrash(Item item)

@@ -38,6 +38,11 @@ internal sealed class AquariumFish
     private Vector2 position;
 
     private Vector2 velocity;
+
+    /// <summary>The last position at which the whole sprite was over water, same space as <see cref="position"/>.</summary>
+    private Vector2 safePosition;
+
+    private bool hasSafePosition;
     private bool facingLeft;
     private float alpha;
     private FadeState state;
@@ -87,24 +92,32 @@ internal sealed class AquariumFish
         // Nudge the fish away from shore if its sprite would stick out of the water.
         const float push = 32f;
         Rectangle bounds = this.GetBounds();
-        if (!grid.IsWater(bounds.Left / WaterGrid.TileSize, bounds.Center.Y / WaterGrid.TileSize + 2))
+        if (!grid.IsWater(WaterGrid.TileOf(bounds.Left), WaterGrid.TileOf(bounds.Center.Y) + 2))
         {
             this.position.X += push;
         }
-        else if (!grid.IsWater(bounds.Right / WaterGrid.TileSize, bounds.Center.Y / WaterGrid.TileSize + 2))
+        else if (!grid.IsWater(WaterGrid.TileOf(bounds.Right), WaterGrid.TileOf(bounds.Center.Y) + 2))
         {
             this.position.X -= push;
         }
 
         bounds = this.GetBounds();
-        if (!grid.IsWater(bounds.Center.X / WaterGrid.TileSize, bounds.Top / WaterGrid.TileSize))
+        if (!grid.IsWater(WaterGrid.TileOf(bounds.Center.X), WaterGrid.TileOf(bounds.Top)))
         {
             this.position.Y -= push;
         }
-        else if (!grid.IsWater(bounds.Center.X / WaterGrid.TileSize, bounds.Bottom / WaterGrid.TileSize))
+        else if (!grid.IsWater(WaterGrid.TileOf(bounds.Center.X), WaterGrid.TileOf(bounds.Bottom)))
         {
             this.position.Y += push;
         }
+
+        // The jitter and the nudge can still leave the sprite hanging over the shore on small ponds
+        // and at map edges. A spawn tile has water on all four sides, so its centre is a safe fallback.
+        if (!this.FitsInWater())
+            this.position = new Vector2(tileX * WaterGrid.TileSize + 32f, -tileY * WaterGrid.TileSize - 32f);
+
+        this.hasSafePosition = this.FitsInWater();
+        this.safePosition = this.position;
 
         this.facingLeft = rng.Next(2) == 1;
         this.velocity = new Vector2(this.facingLeft ? -1f : 1f, 0f) * this.minimumVelocity;
@@ -157,6 +170,40 @@ internal sealed class AquariumFish
             if (this.marineLocation && this.position.Y < MarineCeiling)
                 this.position.Y = MarineCeiling;
         }
+
+        this.KeepInWater();
+    }
+
+    /// <summary>
+    /// Get whether the sprite has water at the middle of each of its four edges, which is the same
+    /// test <see cref="Move"/> uses to decide a fish has hit the shore.
+    /// </summary>
+    private bool FitsInWater()
+    {
+        Rectangle bounds = this.GetBounds();
+        int centreX = WaterGrid.TileOf(bounds.Center.X);
+        int centreY = WaterGrid.TileOf(bounds.Center.Y);
+        return this.grid.IsWater(WaterGrid.TileOf(bounds.Left), centreY)
+            && this.grid.IsWater(WaterGrid.TileOf(bounds.Right), centreY)
+            && this.grid.IsWater(centreX, WaterGrid.TileOf(bounds.Top))
+            && this.grid.IsWater(centreX, WaterGrid.TileOf(bounds.Bottom));
+    }
+
+    /// <summary>
+    /// Last line of defence for anything that moves a fish without checking the shore, such as the
+    /// squid's slow sink. Without it squid walked out of the water and off the map.
+    /// </summary>
+    private void KeepInWater()
+    {
+        if (this.FitsInWater())
+        {
+            this.safePosition = this.position;
+            this.hasSafePosition = true;
+        }
+        else if (this.hasSafePosition)
+        {
+            this.position = this.safePosition;
+        }
     }
 
     public void Draw(SpriteBatch b, Rectangle viewport, float drawLayer, bool drawShadow)
@@ -165,7 +212,8 @@ internal sealed class AquariumFish
             return;
 
         SpriteEffects effects = SpriteEffects.None;
-        int offsetX = -12;
+        int frameWidth = this.visual.FrameWidth;
+        int offsetX = -frameWidth / 2;
         int segmentWidth = this.visual.SwimType == FishSwimType.Eel ? 4 : 8;
         int step = segmentWidth;
         if (this.facingLeft)
@@ -180,7 +228,7 @@ internal sealed class AquariumFish
         if (this.visual.SwimType is FishSwimType.Ground or FishSwimType.Crawl or FishSwimType.Static)
             bob = 0f;
 
-        float scaleFactor = 4f * this.scale;
+        float scaleFactor = 4f * this.scale * this.visual.SizeFactor;
         float waveDivisor = 10f;
         float waveSpeed = 1f;
         if (this.visual.SwimType == FishSwimType.Eel)
@@ -190,7 +238,7 @@ internal sealed class AquariumFish
         }
 
         Texture2D texture = this.visual.Texture;
-        int frameX = this.frame % this.visual.FramesPerRow * 24;
+        int frameX = this.frame % this.visual.FramesPerRow * frameWidth;
         int frameY = this.frame / this.visual.FramesPerRow * 48;
         Vector2 world = this.WorldPosition;
         Color color = Color.White * this.alpha;
@@ -203,10 +251,10 @@ internal sealed class AquariumFish
                 b.Draw(
                     texture,
                     Game1.GlobalToLocal(world + new Vector2(0f, bob) * scaleFactor),
-                    new Rectangle(frameX, frameY, 24, 24),
+                    new Rectangle(frameX, frameY, frameWidth, 24),
                     color,
                     0f,
-                    new Vector2(12f, 12f),
+                    new Vector2(frameWidth / 2f, 12f),
                     scaleFactor,
                     effects,
                     drawLayer
@@ -218,10 +266,10 @@ internal sealed class AquariumFish
                 b.Draw(
                     texture,
                     Game1.GlobalToLocal(world + new Vector2(0f, bob) * scaleFactor),
-                    new Rectangle(frameX, frameY, 24, 24),
+                    new Rectangle(frameX, frameY, frameWidth, 24),
                     color,
                     Math.Clamp(this.velocity.X, -0.5f, 0.5f),
-                    new Vector2(12f, 12f),
+                    new Vector2(frameWidth / 2f, 12f),
                     scaleFactor,
                     effects,
                     drawLayer
@@ -229,7 +277,7 @@ internal sealed class AquariumFish
                 break;
 
             default:
-                int segments = 24 / segmentWidth;
+                int segments = frameWidth / segmentWidth;
                 float speedFactor = Math.Clamp(this.velocity.Length(), 0.2f, 1f);
                 for (int i = 0; i < segments; i++)
                 {
@@ -294,14 +342,14 @@ internal sealed class AquariumFish
         this.position.X += horizontal;
 
         Rectangle bounds = this.GetBounds();
-        if (!this.grid.IsWater(bounds.Left / WaterGrid.TileSize, bounds.Center.Y / WaterGrid.TileSize))
+        if (!this.grid.IsWater(WaterGrid.TileOf(bounds.Left), WaterGrid.TileOf(bounds.Center.Y)))
         {
             this.position.X -= horizontal;
             this.position.X += 4f;
             this.velocity.X *= -0.8f;
             this.facingLeft = !this.facingLeft;
         }
-        else if (!this.grid.IsWater(bounds.Right / WaterGrid.TileSize, bounds.Center.Y / WaterGrid.TileSize))
+        else if (!this.grid.IsWater(WaterGrid.TileOf(bounds.Right), WaterGrid.TileOf(bounds.Center.Y)))
         {
             this.position.X -= horizontal;
             this.velocity.X *= -0.8f;
@@ -313,8 +361,8 @@ internal sealed class AquariumFish
         bounds = this.GetBounds();
         // Bounce off the shore vertically too. The old code was missing the negations, so it
         // cancelled every vertical step and fish only ever drifted sideways.
-        if (!this.grid.IsWater(bounds.Center.X / WaterGrid.TileSize, bounds.Top / WaterGrid.TileSize)
-            || !this.grid.IsWater(bounds.Center.X / WaterGrid.TileSize, bounds.Bottom / WaterGrid.TileSize))
+        if (!this.grid.IsWater(WaterGrid.TileOf(bounds.Center.X), WaterGrid.TileOf(bounds.Top))
+            || !this.grid.IsWater(WaterGrid.TileOf(bounds.Center.X), WaterGrid.TileOf(bounds.Bottom)))
         {
             this.position.Y -= this.velocity.Y;
             this.velocity.Y *= -0.8f;

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
@@ -19,10 +18,7 @@ public sealed class ModEntry : Mod
     /// </summary>
     internal const string LocationDataAsset = "Mods/shekurika.VisibleFish/LocationData";
 
-    /// <summary>Item and texture id of the extra legendary fish added by this mod.</summary>
-    internal const string LegendaryFishItemId = "asdkmpwadp1231sda21";
-
-    private const string AquariumDataAsset = "Data/AquariumFish";
+    private const string SpawnBasketAction = "Kkthnx.Waterlife_SpawnBasket";
 
     internal static ModEntry Instance { get; private set; } = null!;
 
@@ -50,6 +46,12 @@ public sealed class ModEntry : Mod
         helper.Events.Player.Warped += this.OnWarped;
         helper.Events.Content.AssetRequested += this.OnAssetRequested;
 
+        // Lets LocationData.json spawns wait for a mod, e.g. "Kkthnx.Waterlife_MOD_LOADED Some.ModId".
+        GameStateQuery.Register(
+            "Kkthnx.Waterlife_MOD_LOADED",
+            (query, _) => query.Length > 1 && helper.ModRegistry.IsLoaded(query[1])
+        );
+
         new Harmony(this.ModManifest.UniqueID).PatchAll(typeof(ModEntry).Assembly);
     }
 
@@ -60,7 +62,7 @@ public sealed class ModEntry : Mod
         GenericModConfigMenu.Register(this, this.Helper, () => this.Config);
 
         GameLocation.RegisterTileAction(
-            "VF.SpawnBasket",
+            SpawnBasketAction,
             (location, args, who, tile) =>
             {
                 Game1.playSound("skeletonStep");
@@ -92,7 +94,19 @@ public sealed class ModEntry : Mod
 
     private void OnWarped(object? sender, WarpedEventArgs e)
     {
+        // SMAPI raises this for every player in multiplayer. Another player's warp must not rebuild
+        // the water for the local screen.
+        if (!e.IsLocalPlayer)
+            return;
+
         Managers.Value?.ResetForLocation(e.NewLocation);
+    }
+
+    /// <summary>Throw away the current fish on every screen so a changed setting shows up right away.</summary>
+    internal static void RefreshAll()
+    {
+        foreach (KeyValuePair<int, FishManager?> screen in Managers.GetActiveValues())
+            screen.Value?.Invalidate();
     }
 
     private void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
@@ -101,31 +115,11 @@ public sealed class ModEntry : Mod
         {
             e.LoadFromModFile<Dictionary<string, LocationFishData>>("assets/LocationData.json", AssetLoadPriority.High);
         }
-        else if (e.Name.IsEquivalentTo(AquariumDataAsset))
-        {
-            // Gives the extra legendary fish an aquarium sprite. This previously targeted a
-            // misspelled asset name, so the fish always fell back to the generic sprite.
-            e.Edit(
-                asset => asset.AsDictionary<string, string>().Data[LegendaryFishItemId] = $"0/fish/////{LegendaryFishItemId}",
-                AssetEditPriority.Late
-            );
-        }
-        else if (e.Name.IsEquivalentTo(LegendaryFishItemId))
-        {
-            // assets/misc.txt is a 24x48 PNG despite its extension.
-            e.LoadFromModFile<Texture2D>("assets/misc.txt", AssetLoadPriority.High);
-        }
-        else if (e.Name.IsEquivalentTo("Maps/VFStatue"))
-        {
-            // Required, not decorative. SMAPI strips the leading dot from the map's ".VFStatue.png"
-            // tilesheet source, does not find "assets/VFStatue.png", and falls back to the content key
-            // "Maps/VFStatue". Without this loader the statue would draw as a missing texture.
-            e.LoadFromModFile<Texture2D>("assets/.VFStatue.png", AssetLoadPriority.High);
-        }
         else if (this.stardewValleyExpandedLoaded && e.Name.IsEquivalentTo("Maps/Woods"))
         {
-            // Overlay, not Replace: the statue sprite is mostly empty and must not punch holes in the map.
-            e.Edit(asset => asset.AsMap().PatchMap(this.GetStatueMap(), null, new Rectangle(72, 25, 2, 2), PatchMapMode.Overlay));
+            // Overlay, not Replace: the empty corners of the statue map must not punch holes in the woods.
+            // The map is two tiles wide and three tall, and its bottom row is the part you bump into.
+            e.Edit(asset => asset.AsMap().PatchMap(this.GetStatueMap(), null, new Rectangle(72, 24, 2, 3), PatchMapMode.Overlay));
         }
     }
 

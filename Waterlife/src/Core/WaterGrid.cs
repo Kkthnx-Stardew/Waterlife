@@ -55,6 +55,17 @@ internal sealed class WaterGrid
         return grid;
     }
 
+    /// <summary>
+    /// Get the tile that contains a pixel coordinate. Plain integer division rounds toward zero,
+    /// which would read the 63 pixels just past the left and top map edge as tile 0 and let
+    /// entities drift off the map.
+    /// </summary>
+    public static int TileOf(int pixel)
+    {
+        int tile = pixel / TileSize;
+        return pixel < 0 && pixel % TileSize != 0 ? tile - 1 : tile;
+    }
+
     /// <summary>Get whether a map tile is fishable water. Out-of-bounds tiles are never water.</summary>
     public bool IsWater(int tileX, int tileY)
     {
